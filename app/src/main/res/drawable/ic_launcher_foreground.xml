@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Box Base -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M32,42 L54,30 L76,42 L76,68 L54,80 L32,68 Z" />
+    <!-- Left Face with shading -->
+    <path
+        android:fillColor="#0284C7"
+        android:pathData="M32,42 L54,54 L54,80 L32,68 Z" />
+    <!-- Right Face -->
+    <path
+        android:fillColor="#0369A1"
+        android:pathData="M54,54 L76,42 L76,68 L54,80 Z" />
+    <!-- Top Face -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M32,42 L54,30 L76,42 L54,54 Z" />
+    <!-- Packing Tape Stripe -->
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M48,33 L60,40 L60,76 L48,70 Z" />
+    <!-- Barcode lines on front box -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M37,49 L41,51 L41,61 L37,59 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M43,52 L45,53 L45,63 L43,62 Z" />
+    <!-- Fast Outbound Motion Arrow Badge -->
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M64,30 L80,30 L80,46 L74,40 L64,50 L58,44 L68,34 Z" />
+</vector>
