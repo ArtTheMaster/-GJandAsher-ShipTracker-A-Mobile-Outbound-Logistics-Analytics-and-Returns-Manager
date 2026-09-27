@@ -1,0 +1,27 @@
+# This file tracks properties of this Flutter project.
+# Used by Flutter tool to assess capabilities and perform upgrades etc.
+#
+# This file should be version controlled and should not be manually edited.
+
+version:
+  revision: "0.0.0"
+  channel: "stable"
+
+project_type: app
+
+# Tracks metadata for the flutter migrate command
+migration:
+  platforms:
+    - platform: root
+      baseline_revision: "0.0.0"
+    - platform: android
+      baseline_revision: "0.0.0"
+    - platform: web
+      baseline_revision: "0.0.0"
+
+  # User provided section
+
+  # List of local paths that should be treated as unmodified
+  unmanaged_files:
+    - 'lib/main.dart'
+    - 'android/app/build.gradle'

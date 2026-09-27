@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../controllers/ship_tracker_controller.dart';
 import '../models/models.dart';
+import '../theme/app_theme.dart';
 import 'dashboard_screen.dart';
 import 'dispatch_screen.dart';
 import 'returns_screen.dart';
+import 'rule_60_30_10_dialog.dart';
 import 'scan_screen.dart';
 import 'shipments_screen.dart';
 import 'staff_management_dialog.dart';
@@ -155,6 +157,13 @@ class MainScaffold extends StatelessWidget {
                 },
               ),
             ),
+
+          // 60-30-10 Design Architecture Inspector
+          IconButton(
+            icon: const Icon(Icons.palette_outlined, color: ColorRule603010.accentLogisticsBlue),
+            tooltip: '60-30-10 Rule Inspector (Color & Spatial Architecture)',
+            onPressed: () => Rule603010Dialog.show(context),
+          ),
 
           // Owner Staff Management Button
           if (isOwner)

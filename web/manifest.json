@@ -1,0 +1,11 @@
+{
+    "name": "GJandAsher ShipTracker",
+    "short_name": "ShipTracker",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#F8FAFC",
+    "theme_color": "#2563EB",
+    "description": "Outbound Logistics, Analytics, and Returns Manager with 60-30-10 Design Architecture",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false
+}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controllers/ship_tracker_controller.dart';
 import '../models/models.dart';
+import '../theme/app_theme.dart';
 
 class ShipmentsScreen extends StatelessWidget {
   final ShipTrackerController controller;

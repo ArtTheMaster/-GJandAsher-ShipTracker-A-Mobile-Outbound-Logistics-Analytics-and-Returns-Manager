@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controllers/ship_tracker_controller.dart';
 import '../models/models.dart';
+import '../theme/app_theme.dart';
 
 class DashboardScreen extends StatelessWidget {
   final ShipTrackerController controller;
@@ -183,13 +184,13 @@ class DashboardScreen extends StatelessWidget {
                                   children: [
                                     Text(c.displayName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                                     const Spacer(),
-                                    Text('$count (${(pct * 100).toStringAsFixed(0)}%)', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                                    Text('$count (${(pct * 100).toStringAsFixed(0)}%)', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                                   ],
                                 ),
                                 const SizedBox(height: 4),
                                 LinearProgressIndicator(
                                   value: pct.toDouble(),
-                                  backgroundColor: Colors.grey[200],
+                                  backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
                                   color: c.badgeColor,
                                   minHeight: 6,
                                   borderRadius: BorderRadius.circular(4),
