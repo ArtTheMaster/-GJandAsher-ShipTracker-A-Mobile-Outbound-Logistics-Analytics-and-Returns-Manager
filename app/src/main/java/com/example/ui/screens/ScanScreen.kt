@@ -1,7 +1,9 @@
 package com.example.ui.screens
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.hardware.camera2.CameraManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -20,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -69,6 +72,43 @@ fun ScanScreen(
     var feedbackText by remember { mutableStateOf<String?>(null) }
     var isSuccessFeedback by remember { mutableStateOf(false) }
     var isTorchOn by remember { mutableStateOf(false) }
+
+    val cameraManager = remember {
+        try {
+            context.getSystemService(Context.CAMERA_SERVICE) as? CameraManager
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun toggleFlashlight() {
+        val nextState = !isTorchOn
+        isTorchOn = nextState
+        try {
+            if (cameraManager != null) {
+                val cameraId = cameraManager.cameraIdList.firstOrNull { id ->
+                    val chars = cameraManager.getCameraCharacteristics(id)
+                    chars.get(android.hardware.camera2.CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+                } ?: cameraManager.cameraIdList.firstOrNull()
+                if (cameraId != null) {
+                    cameraManager.setTorchMode(cameraId, nextState)
+                }
+            }
+        } catch (_: Exception) {
+            // Software illumination fallback active
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            if (isTorchOn) {
+                try {
+                    val cameraId = cameraManager?.cameraIdList?.firstOrNull()
+                    if (cameraId != null) cameraManager?.setTorchMode(cameraId, false)
+                } catch (_: Exception) {}
+            }
+        }
+    }
 
     // Dropdown expansion states for manual correction
     var platformExpanded by remember { mutableStateOf(false) }
@@ -198,11 +238,28 @@ fun ScanScreen(
                                 }
                             }
                         } else {
+                            // Flashlight active illumination background effect for dark places
+                            if (isTorchOn) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(
+                                            Brush.radialGradient(
+                                                colors = listOf(
+                                                    Color(0xFFFFFAEB).copy(alpha = 0.38f),
+                                                    Color(0xFFFEF3C7).copy(alpha = 0.18f),
+                                                    Color.Transparent
+                                                )
+                                            )
+                                        )
+                                )
+                            }
+
                             // Active Scanner Viewfinder reticle
                             Box(
                                 modifier = Modifier
                                     .size(width = 250.dp, height = 100.dp)
-                                    .border(2.dp, LogisticsBlue, RoundedCornerShape(10.dp)),
+                                    .border(2.dp, if (isTorchOn) Color(0xFFFBBF24) else LogisticsBlue, RoundedCornerShape(10.dp)),
                                 contentAlignment = Alignment.TopCenter
                             ) {
                                 // Animated Laser scanning beam
@@ -211,34 +268,56 @@ fun ScanScreen(
                                         .fillMaxWidth()
                                         .height(2.dp)
                                         .offset(y = laserOffsetY.dp)
-                                        .background(AccentAmber)
+                                        .background(if (isTorchOn) Color(0xFFF59E0B) else AccentAmber)
                                 )
                             }
 
+                            // Flashlight / Torch Controls & Status
                             Row(
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
-                                    .padding(8.dp)
+                                    .padding(8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
+                                if (isTorchOn) {
+                                    Surface(
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = Color(0xFFFEF3C7)
+                                    ) {
+                                        Text(
+                                            text = "Torch ON",
+                                            color = Color(0xFF92400E),
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                        )
+                                    }
+                                }
+
                                 IconButton(
-                                    onClick = { isTorchOn = !isTorchOn },
+                                    onClick = { toggleFlashlight() },
                                     modifier = Modifier
-                                        .size(32.dp)
-                                        .background(Slate800.copy(alpha = 0.8f), CircleShape)
+                                        .size(34.dp)
+                                        .background(
+                                            if (isTorchOn) Color(0xFFFBBF24) else Slate800.copy(alpha = 0.85f),
+                                            CircleShape
+                                        )
                                 ) {
                                     Icon(
                                         imageVector = if (isTorchOn) Icons.Default.FlashOn else Icons.Default.FlashOff,
-                                        contentDescription = "Torch",
-                                        tint = if (isTorchOn) AccentAmber else Color.White,
-                                        modifier = Modifier.size(18.dp)
+                                        contentDescription = "Torch / Flashlight",
+                                        tint = if (isTorchOn) Color(0xFF78350F) else Color.White,
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
                             }
 
                             Text(
-                                text = "Position barcode or QR inside reticle frame",
-                                color = Color(0xFFCBD5E1),
+                                text = if (isTorchOn) "🔦 Flashlight active • Scanner ready" else "Position barcode or QR inside reticle frame",
+                                color = if (isTorchOn) Color(0xFFFEF3C7) else Color(0xFFCBD5E1),
                                 fontSize = 11.sp,
+                                fontWeight = if (isTorchOn) FontWeight.Bold else FontWeight.Normal,
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
                                     .padding(bottom = 6.dp)

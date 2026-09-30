@@ -31,7 +31,7 @@ fun DashboardScreen(
     batches: List<DispatchBatch>,
     returns: List<ReturnRecord>,
     currentUser: User?,
-    onOpenStaffDialog: () -> Unit
+    onOpenStaffDialog: (() -> Unit)? = null
 ) {
     val isOwner = currentUser?.role == UserRole.OWNER
     var reportOutputText by remember { mutableStateOf<String?>(null) }
@@ -106,36 +106,23 @@ fun DashboardScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Owner Header & Staff Management Button
+        // Owner Header (Clean without redundant Staff button)
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Column {
-                    Text(
-                        text = "Executive Operations Dashboard",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = "Live outbound metrics & courier performance",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Button(
-                    onClick = onOpenStaffDialog,
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Icon(Icons.Default.Group, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Staff", fontSize = 12.sp)
-                }
+                Text(
+                    text = "Executive Operations Dashboard",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "Live outbound metrics & courier performance",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 

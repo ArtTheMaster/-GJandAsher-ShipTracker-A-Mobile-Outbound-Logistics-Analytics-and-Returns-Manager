@@ -82,6 +82,21 @@ class MainScaffold extends StatelessWidget {
                   },
                 );
               }),
+              if (controller.currentUser?.role == UserRole.owner) ...[
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _openStaffManager(context);
+                  },
+                  icon: const Icon(Icons.manage_accounts_outlined, size: 18),
+                  label: const Text('Manage Staff Accounts & Roles'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(44),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ],
               const Divider(height: 24),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.red),
@@ -100,53 +115,69 @@ class MainScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final user = controller.currentUser;
     final isOwner = user?.role == UserRole.owner;
 
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 64,
         titleSpacing: 16,
+        elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   'GJandAsher',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, letterSpacing: -0.3),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.3,
+                    color: theme.colorScheme.onSurface,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
                     color: isOwner ? const Color(0xFF1E3A8A) : const Color(0xFF0284C7),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     isOwner ? 'OWNER' : 'STAFF',
-                    style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 2),
             Text(
               user?.fullName ?? 'Operator',
-              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
         actions: [
-          // Offline pending sync chip
+          // Offline pending sync indicator
           if (controller.pendingSyncCount > 0)
             Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: ActionChip(
-                backgroundColor: const Color(0xFFFEF3C7),
-                side: const BorderSide(color: Color(0xFFF59E0B)),
-                avatar: const Icon(Icons.cloud_upload_outlined, size: 16, color: Color(0xFFB45309)),
-                label: Text(
-                  '${controller.pendingSyncCount} Sync',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFFB45309)),
+              padding: const EdgeInsets.only(right: 4),
+              child: IconButton(
+                tooltip: '${controller.pendingSyncCount} Offline items to sync',
+                icon: Badge(
+                  label: Text('${controller.pendingSyncCount}'),
+                  backgroundColor: const Color(0xFFF59E0B),
+                  child: const Icon(Icons.cloud_upload_outlined, color: Color(0xFFF59E0B)),
                 ),
                 onPressed: () {
                   controller.syncPendingRecords((count) {
@@ -165,28 +196,72 @@ class MainScaffold extends StatelessWidget {
             onPressed: () => Rule603010Dialog.show(context),
           ),
 
-          // Owner Staff Management Button
-          if (isOwner)
-            IconButton(
-              icon: const Icon(Icons.manage_accounts_outlined),
-              tooltip: 'Staff & Roles Manager (Owner Only)',
-              onPressed: () => _openStaffManager(context),
-            ),
-
-          // Profile / Switch Account
-          IconButton(
+          // User Menu / Profile Dropdown
+          PopupMenuButton<String>(
             icon: CircleAvatar(
-              radius: 14,
+              radius: 16,
               backgroundColor: isOwner ? const Color(0xFF1E3A8A) : const Color(0xFF0284C7),
               child: Text(
-                user != null && user.fullName.isNotEmpty ? user.fullName[0] : '?',
-                style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold),
+                user != null && user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : '?',
+                style: const TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
-            tooltip: 'User Switcher / Sign Out',
-            onPressed: () => _showUserSwitcher(context),
+            tooltip: 'Account & Settings',
+            onSelected: (value) {
+              if (value == 'staff') {
+                _openStaffManager(context);
+              } else if (value == 'switch') {
+                _showUserSwitcher(context);
+              } else if (value == 'logout') {
+                controller.logout();
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                enabled: false,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(user?.fullName ?? 'Operator', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text('@${user?.username ?? ""} • ${user?.role.label ?? ""}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              if (isOwner)
+                const PopupMenuItem(
+                  value: 'staff',
+                  child: Row(
+                    children: [
+                      Icon(Icons.manage_accounts_outlined, size: 20),
+                      SizedBox(width: 10),
+                      Text('Manage Staff & Roles'),
+                    ],
+                  ),
+                ),
+              const PopupMenuItem(
+                value: 'switch',
+                child: Row(
+                  children: [
+                    Icon(Icons.switch_account_outlined, size: 20),
+                    SizedBox(width: 10),
+                    Text('Switch Account'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, color: Colors.red, size: 20),
+                    SizedBox(width: 10),
+                    Text('Sign Out', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 8),
         ],
       ),
       body: AnimatedBuilder(

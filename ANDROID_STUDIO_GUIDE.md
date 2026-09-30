@@ -40,3 +40,17 @@ This guide is specifically for groupmates running this Flutter/Dart project in *
 - Both team members work directly on the shared `lib/` directory.
 - Color architecture and spatial layout rules are centralized in `lib/theme/rule_60_30_10.dart` and `lib/theme/app_theme.dart`.
 - Changes pushed by the VS Code member or Android Studio member sync effortlessly without configuration collisions.
+
+---
+
+## 🔧 Common Windows / Android Studio Troubleshooting
+
+### Error: `Waiting for another flutter command to release the startup lock...`
+If Android Studio shows this error and red squiggly lines under `package:flutter/...`:
+1. **Kill hanging Dart processes**: Open Task Manager (`Ctrl + Shift + Esc`) and terminate any `dart.exe` or `flutter` processes.
+2. **Delete the lockfile**: Go to your Flutter SDK installation directory:
+   `...\flutter\bin\cache\`
+   Delete the file named **`lockfile`**.
+3. **Run Pub Get**: Return to Android Studio, open `pubspec.yaml`, and click **Flutter pub get** (or in terminal: `flutter pub get`).
+4. *(Recommendation)*: If your Flutter SDK is installed in a OneDrive-synced folder (`OneDrive/Desktop/...`), move Flutter to `C:\src\flutter` or `C:\flutter` to prevent OneDrive from file-locking active cache files.
+

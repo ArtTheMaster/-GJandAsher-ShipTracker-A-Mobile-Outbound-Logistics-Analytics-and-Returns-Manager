@@ -186,7 +186,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
                             child: Center(
                               child: Text(
                                 'No scanned parcels pending for ${_selectedCourier.displayName}.',
-                                style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
                               ),
                             ),
                           )
@@ -225,10 +225,16 @@ class _DispatchScreenState extends State<DispatchScreen> {
             const SizedBox(height: 20),
 
             // Dispatched Batches History
-            const Text(
+            Text(
               'RECENT HANDOVER BATCHES',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 1.1),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                letterSpacing: 1.1,
+              ),
             ),
+
             const SizedBox(height: 8),
             AnimatedBuilder(
               animation: widget.controller,

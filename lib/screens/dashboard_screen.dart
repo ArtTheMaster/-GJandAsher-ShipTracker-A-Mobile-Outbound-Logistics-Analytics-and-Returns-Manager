@@ -138,7 +138,7 @@ class DashboardScreen extends StatelessWidget {
                                     const SizedBox(width: 6),
                                     Text(p.displayName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                                     const Spacer(),
-                                    Text('$count ($pct)', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                                    Text('$count (${(pct * 100).toStringAsFixed(0)}%)', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                                   ],
                                 ),
                                 const SizedBox(height: 4),

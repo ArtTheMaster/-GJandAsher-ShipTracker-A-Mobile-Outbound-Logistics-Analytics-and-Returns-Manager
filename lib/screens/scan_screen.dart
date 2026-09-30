@@ -12,19 +12,46 @@ class ScanScreen extends StatefulWidget {
   State<ScanScreen> createState() => _ScanScreenState();
 }
 
-class _ScanScreenState extends State<ScanScreen> {
+class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateMixin {
   final _barcodeController = TextEditingController();
   final _recipientNameController = TextEditingController();
   final _recipientPhoneController = TextEditingController();
   final _notesController = TextEditingController();
+  bool _isTorchOn = false;
+  bool _isCameraActive = true;
+  late final AnimationController _laserAnimController;
+
+  @override
+  void initState() {
+    super.initState();
+    _laserAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+  }
 
   @override
   void dispose() {
+    _laserAnimController.dispose();
     _barcodeController.dispose();
     _recipientNameController.dispose();
     _recipientPhoneController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  void _toggleTorch() {
+    setState(() {
+      _isTorchOn = !_isTorchOn;
+    });
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_isTorchOn ? '🔦 Flashlight turned ON (Illuminated for dark warehouse)' : 'Flashlight turned OFF'),
+        duration: const Duration(seconds: 1),
+        backgroundColor: _isTorchOn ? const Color(0xFFD97706) : const Color(0xFF334155),
+      ),
+    );
   }
 
   void _onCodeChanged(String val) {
@@ -95,6 +122,131 @@ class _ScanScreenState extends State<ScanScreen> {
                 ),
               ),
 
+            // Camera Viewfinder & Flashlight Card
+            Card(
+              color: const Color(0xFF0F172A),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.camera_alt_outlined, color: Color(0xFF38BDF8), size: 20),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Live Camera Viewfinder',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        const Spacer(),
+                        if (_isTorchOn)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEF3C7),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Text(
+                              'Torch ON',
+                              style: TextStyle(color: Color(0xFF92400E), fontSize: 10, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        IconButton(
+                          icon: Icon(
+                            _isTorchOn ? Icons.flash_on : Icons.flash_off,
+                            color: _isTorchOn ? const Color(0xFFFBBF24) : Colors.white70,
+                          ),
+                          tooltip: 'Toggle Flashlight / Torch',
+                          style: IconButton.styleFrom(
+                            backgroundColor: _isTorchOn ? const Color(0xFF78350F) : const Color(0xFF1E293B),
+                          ),
+                          onPressed: _toggleTorch,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Viewfinder area
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        height: 160,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF020617),
+                          border: Border.all(
+                            color: _isTorchOn ? const Color(0xFFFBBF24) : const Color(0xFF334155),
+                            width: _isTorchOn ? 2 : 1,
+                          ),
+                          gradient: _isTorchOn
+                              ? const RadialGradient(
+                                  colors: [
+                                    Color(0x55FFFBEB),
+                                    Color(0x22FEF3C7),
+                                    Color(0xFF020617),
+                                  ],
+                                  radius: 0.85,
+                                )
+                              : null,
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Targeting Reticle
+                            Container(
+                              width: 240,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: _isTorchOn ? const Color(0xFFFBBF24) : const Color(0xFF0284C7),
+                                  width: 2,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: AnimatedBuilder(
+                                animation: _laserAnimController,
+                                builder: (context, _) {
+                                  return Align(
+                                    alignment: Alignment(0, (_laserAnimController.value * 2) - 1),
+                                    child: Container(
+                                      height: 2,
+                                      width: double.infinity,
+                                      color: _isTorchOn ? const Color(0xFFF59E0B) : const Color(0xFFEF4444),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 8,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  _isTorchOn
+                                      ? '🔦 Flashlight active • High-visibility scanning'
+                                      : 'Position barcode or QR inside reticle frame',
+                                  style: TextStyle(
+                                    color: _isTorchOn ? const Color(0xFFFEF3C7) : Colors.white70,
+                                    fontSize: 11,
+                                    fontWeight: _isTorchOn ? FontWeight.bold : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
             // Barcode Input Card
             Card(
               child: Padding(
@@ -143,7 +295,14 @@ class _ScanScreenState extends State<ScanScreen> {
                     const SizedBox(height: 10),
 
                     // Quick simulator buttons for quick testing
-                    const Text('QUICK TEST BARCODES (AUTO-DETECTION):', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
+                    Text(
+                      'QUICK TEST BARCODES (AUTO-DETECTION):',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Column(
                       children: [
@@ -152,11 +311,11 @@ class _ScanScreenState extends State<ScanScreen> {
                             Expanded(
                               child: OutlinedButton.icon(
                                 style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                                  shape: RoundedCornerShape(10),
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
                                 icon: const Icon(Icons.circle, size: 8, color: Color(0xFFEE4D2D)),
-                                label: const Text('Shopee SPX', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600), textAlign: TextAlign.center, overflow: TextOverflow.ellipsis),
+                                label: const Text('Shopee SPX', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
                                 onPressed: canScan ? () => _simulateScan('SPXPH${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}') : null,
                               ),
                             ),
@@ -164,11 +323,11 @@ class _ScanScreenState extends State<ScanScreen> {
                             Expanded(
                               child: OutlinedButton.icon(
                                 style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                                  shape: RoundedCornerShape(10),
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
                                 icon: const Icon(Icons.circle, size: 8, color: Color(0xFFE11D48)),
-                                label: const Text('J&T Express', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600), textAlign: TextAlign.center, overflow: TextOverflow.ellipsis),
+                                label: const Text('J&T Express', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
                                 onPressed: canScan ? () => _simulateScan('JT998${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}PH') : null,
                               ),
                             ),
@@ -180,11 +339,11 @@ class _ScanScreenState extends State<ScanScreen> {
                             Expanded(
                               child: OutlinedButton.icon(
                                 style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                                  shape: RoundedCornerShape(10),
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
                                 icon: const Icon(Icons.circle, size: 8, color: Color(0xFF0060FF)),
-                                label: const Text('Lazada LEX', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600), textAlign: TextAlign.center, overflow: TextOverflow.ellipsis),
+                                label: const Text('Lazada LEX', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
                                 onPressed: canScan ? () => _simulateScan('MPLZD${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}') : null,
                               ),
                             ),
@@ -192,11 +351,11 @@ class _ScanScreenState extends State<ScanScreen> {
                             Expanded(
                               child: OutlinedButton.icon(
                                 style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                                  shape: RoundedCornerShape(10),
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
                                 icon: const Icon(Icons.circle, size: 8, color: Color(0xFF06B6D4)),
-                                label: const Text('TikTok Shop', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600), textAlign: TextAlign.center, overflow: TextOverflow.ellipsis),
+                                label: const Text('TikTok Shop', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
                                 onPressed: canScan ? () => _simulateScan('TT990${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}') : null,
                               ),
                             ),
@@ -258,14 +417,18 @@ class _ScanScreenState extends State<ScanScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Auto-Detected Platform & Logistics', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                            Text(
+                              'Auto-Detected Platform & Logistics',
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                            ),
                             const SizedBox(height: 4),
                             Text(
                               widget.controller.scanClassificationNote.isNotEmpty
                                   ? widget.controller.scanClassificationNote
                                   : 'Awaiting barcode input for auto-classification',
-                              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                              style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
                             ),
+
                             const SizedBox(height: 16),
                             Row(
                               children: [
